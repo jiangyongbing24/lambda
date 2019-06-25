@@ -1,5 +1,6 @@
 package com.test.util;
 
+import com.test.util.function.IntFunction;
 import com.test.util.function.Predicate;
 
 import java.util.Iterator;
@@ -18,6 +19,10 @@ public interface Collection<E> extends Iterable<E> {
     Object[] toArray();
 
     <T> T[] toArray(T[] a);
+
+    default <T> T[] toArray(IntFunction<T[]> generator){
+        return toArray(generator.apply(0));
+    }
 
     boolean add(E e);
 

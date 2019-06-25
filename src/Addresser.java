@@ -1,4 +1,4 @@
-import com.sun.org.apache.xpath.internal.operations.String;
+
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -46,7 +46,7 @@ public class Addresser {
         return (objectAddress);
     }
 
-    public static void main(java.lang.String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
 //        Object mine = "Hello world".toCharArray(); //先把字符串转化为数组对象
 //        long address = addressOf(mine);
 //        System.out.println("Addess: " + address);
