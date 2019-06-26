@@ -1,9 +1,9 @@
 import com.test.util.Collection;
+import com.test.util.function.Function;
 import sun.misc.Unsafe;
 
 import java.util.*;
 import java.util.function.BinaryOperator;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
@@ -26,5 +26,9 @@ public class Main {
     public static void test(List<String> list) {
         list.add("333");
         System.out.println(list.toString());
+    }
+
+    public static <V,R> void method( Function<V,R> func){
+
     }
 }
