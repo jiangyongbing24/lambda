@@ -10,17 +10,23 @@ import java.util.function.UnaryOperator;
 public class Main {
 
     public static void main(String[] args) {
-        ArrayList<String> list = new ArrayList<>();
-        list.add("111");
-        list.add("222");
-        list.add("333");
-        final int length = list.size();
-        String[] strs = list.toArray(String[]::new);
-        list.forEach(x -> System.out.println(x));
-        list.forEach(System.out::println);
-        for(int i=0;i<strs.length;i++){
-            System.out.println(strs[i]);
-        }
+        ArrayList<String> list1 = new ArrayList<>();
+        list1.add("111");
+        list1.add("222");
+        list1.add("333");
+        ArrayList<String> list2 = new ArrayList<>();
+        list2.add("444");
+        list2.add("555");
+        list2.add("666");
+        TaggedArray<String> stringTaggedArray = new TaggedArray<String>(list1.toArray(new String[0]),list2.toArray(new String[0]));
+        Spliterator<String> spliterator = stringTaggedArray.spliterator();
+//        spliterator.forEachRemaining(System.out::println);
+        System.out.println(spliterator.tryAdvance(System.out::println));
+        System.out.println(spliterator.estimateSize());
+        System.out.println(spliterator.tryAdvance(System.out::println));
+        System.out.println(spliterator.estimateSize());
+        System.out.println(spliterator.tryAdvance(System.out::println));
+        System.out.println(spliterator.estimateSize());
      }
 
     public static void test(List<String> list) {
@@ -28,7 +34,4 @@ public class Main {
         System.out.println(list.toString());
     }
 
-    public static <V,R> void method( Function<V,R> func){
-
-    }
 }

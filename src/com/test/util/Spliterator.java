@@ -6,7 +6,9 @@ public interface Spliterator<T> {
 
     boolean tryAdvance(Consumer<? super T> action);
 
-    default void forEachRemaining(Consumer<T> action){
+    default void forEachRemaining(Consumer<? super T> action){
         do{}while(tryAdvance(action));
     }
+
+    Spliterator<T> trySplit();
 }
