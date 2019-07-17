@@ -39,9 +39,6 @@ public interface List<E> extends Collection<E> {
         while(li.hasNext()){
             li.set(operator.apply(li.next()));
         }
-//        for (E e:this) {
-//            e = operator.apply(li.next());
-//        }
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

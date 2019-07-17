@@ -54,4 +54,6 @@ public interface Collection<E> extends Iterable<E> {
     boolean equals(Object o);
 
     int hashCode();
+
+//    default Spliterator<E> spliterator(){}
 }
