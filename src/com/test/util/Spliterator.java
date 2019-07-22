@@ -63,7 +63,7 @@ public interface Spliterator<T> {
      * 如果此Spliterator的源是通过Comparable排序的，返回null
      * 如果源不能排序，抛出IllegalStateException(非法状态)
      * */
-    default Comparator<T> getComparator(){throw new IllegalStateException();}
+    default Comparator<? super T> getComparator(){throw new IllegalStateException();}
 
     /**
      * 特征值:表示分区元素是有序的(每一次遍历结果相同)

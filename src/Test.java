@@ -1,8 +1,7 @@
-import com.test.util.function.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 /**
  * @Created by JYB
@@ -11,6 +10,16 @@ import java.util.List;
  */
 public class Test {
     public static void main(String[] args) {
+        String[] mans = new String[]{"张三","李四","王麻子","汤姆","杰瑞"};
+        ArrayList<String> manList = new ArrayList<>();
+        Collections.addAll(manList,mans);
+        Spliterator<String> spliterator = Spliterators.spliterator(mans,Spliterator.DISTINCT);
+//        Spliterator<String> spliterator = manList.spliterator();
+        spliterator.tryAdvance(System.out::println);
+        System.out.println("==========================");
+        spliterator = spliterator.trySplit();
+        spliterator.tryAdvance(System.out::println);
+//        spliterator.forEachRemaining(System.out::println);
         Consumer<Integer> action = x -> {
             System.out.println(x * x);
         };
@@ -18,14 +27,16 @@ public class Test {
             System.out.println(x * x);
         });
         funTest(action::accept);
-        System.out.println(IntegerTo32BinaryString(1));
-        System.out.println(IntegerTo32BinaryString(4));
-        System.out.println(IntegerTo32BinaryString(16));
-        System.out.println(IntegerTo32BinaryString(64));
-        System.out.println(IntegerTo32BinaryString(256));
-        System.out.println(IntegerTo32BinaryString(1024));
-        System.out.println(IntegerTo32BinaryString(4096));
-        System.out.println(IntegerTo32BinaryString(16384));
+//        System.out.println(IntegerTo32BinaryString(~1));
+//        System.out.println(IntegerTo32BinaryString(1));
+//        System.out.println(IntegerTo32BinaryString(4));
+//        System.out.println(IntegerTo32BinaryString(16));
+//        System.out.println(IntegerTo32BinaryString(64));
+//        System.out.println(IntegerTo32BinaryString(256));
+//        System.out.println(IntegerTo32BinaryString(1024));
+//        System.out.println(IntegerTo32BinaryString(4096));
+//        System.out.println(IntegerTo32BinaryString(16384));
+//        System.out.println(IntegerTo32BinaryString(-16384 >> 2));
     }
 
     public static void funTest(IntConsumer fun){
