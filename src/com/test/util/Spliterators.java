@@ -7,6 +7,7 @@ import com.test.util.function.IntConsumer;
 import com.test.util.function.LongConsumer;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 
 /**
@@ -119,6 +120,221 @@ public final class Spliterators {
     }
 
     /**
+     * 获取一个集合分区迭代器
+     * */
+    public static <T> Spliterator<T> spliterator(Collection<? extends T> collection,int characteristics){
+        return new IteratorSpliterator<>(Objects.requireNonNull(collection),characteristics);
+    }
+
+    /**
+     * 获取一个集合分区迭代器
+     * */
+    public static <T> Spliterator<T> spliterator(Iterator<? extends T> iterator,long size,int characteristics){
+        return new IteratorSpliterator<>(Objects.requireNonNull(iterator),size,characteristics);
+    }
+
+    /**
+     * 获取一个未知集合大小的分区迭代器
+     * */
+    public static <T> Spliterator<T> spliteratorUnknownSize(Iterator<? extends T> iterator,int characteristics){
+        return new IteratorSpliterator<T>(Objects.requireNonNull(iterator),characteristics);
+    }
+
+    /**
+     * 获取一个整数集合分区迭代器
+     * */
+    public static Spliterator.OfInt spliterator(PrimitiveIterator.OfInt iterator,long size,int characteristics){
+        return new IntIteratorSpliterator(Objects.requireNonNull(iterator),size,characteristics);
+    }
+
+    /**
+     * 获取一个未知大小的整数集合分区迭代器
+     * */
+    public static Spliterator.OfInt spliteratorUnknownSize(PrimitiveIterator.OfInt iterator,int characteristics){
+        return new IntIteratorSpliterator(Objects.requireNonNull(iterator),characteristics);
+    }
+
+    /**
+     * 获取一个长整数集合分区迭代器
+     * */
+    public static Spliterator.OfLong spliterator(PrimitiveIterator.OfLong iterator,long size,int characteristics){
+        return new LongIteratorSpliterator(Objects.requireNonNull(iterator),size,characteristics);
+    }
+
+    /**
+     * 获取一个未知大小的长整数集合分区迭代器
+     * */
+    public static Spliterator.OfLong spliteratorUnknownSize(PrimitiveIterator.OfLong iterator,int characteristics){
+        return new LongIteratorSpliterator(Objects.requireNonNull(iterator),characteristics);
+    }
+
+    /**
+     * 获取一个浮点数集合分区迭代器
+     * */
+    public static Spliterator.OfDouble spliterator(PrimitiveIterator.OfDouble iterator,long size,int characteristics){
+        return new DoubleIteratorSpliterator(Objects.requireNonNull(iterator),size,characteristics);
+    }
+
+    /**
+     * 获取一个未知大小的浮点数集合分区迭代器
+     * */
+    public static Spliterator.OfDouble spliteratorUnknownSize(PrimitiveIterator.OfDouble iterator,int characteristics){
+        return new DoubleIteratorSpliterator(Objects.requireNonNull(iterator),characteristics);
+    }
+
+    /**
+     * 根据一个分区迭代器返回一个迭代器对象
+     * */
+    public static <T> Iterator<T> iterator(Spliterator<? extends T> spliterator){
+        Objects.requireNonNull(spliterator);
+
+        /**
+         * 适配器类，把spliterator对象的方法适配成Iterator接口的方法
+         * */
+        class Adapter implements Iterator<T>,Consumer<T>{
+            boolean valueReady = false;//用来确定tryAdvance不会一直死循环
+            T nextElement;//存储当前存储的值
+
+            //此方法巧妙的利用Spliterator.tryAdvance的特性，加上双重判断避免死循环
+            //一种可能的情况就是Spliterator.tryAdvance会一直返回true
+            //但是Spliterator.tryAdvance运行到最后一个的时候不会执行消费者Consumer
+            //即不会重新初始化valueReady，所以即使一直返回true也不会使Iterator陷入死循环
+            @Override
+            public void accept(T t) {
+                valueReady = true;
+                nextElement = t;
+            }
+
+            @Override
+            public boolean hasNext() {
+                if (!valueReady)
+                    spliterator.tryAdvance(this);
+                return valueReady;
+            }
+
+            @Override
+            public T next() {
+                if (!valueReady && !hasNext())
+                    throw new NoSuchElementException();
+                else {
+                    valueReady = false;
+                    return nextElement;
+                }
+            }
+        }
+
+        return new Adapter();
+    }
+
+    /**
+     * 根据一个整数分区迭代器返回一个整数迭代器对象
+     * */
+    public static PrimitiveIterator.OfInt iterator(Spliterator.OfInt spliterator){
+        Objects.requireNonNull(spliterator);
+        class Adapter implements PrimitiveIterator.OfInt,IntConsumer{
+            boolean valueReady = false;//用来确定tryAdvance不会一直死循环
+            int nextElement;//存储当前存储的值
+
+            @Override
+            public void accept(int t) {
+                valueReady = true;
+                nextElement = t;
+            }
+
+            @Override
+            public boolean hasNext() {
+                if (!valueReady)
+                    spliterator.tryAdvance(this);
+                return valueReady;
+            }
+
+            @Override
+            public int nextInt() {
+                if (!valueReady && !hasNext())
+                    throw new NoSuchElementException();
+                else {
+                    valueReady = false;
+                    return nextElement;
+                }
+            }
+        }
+
+        return new Adapter();
+    }
+
+    /**
+     * 根据一个长整数分区迭代器返回一个长整数迭代器对象
+     * */
+    public static PrimitiveIterator.OfLong iterator(Spliterator.OfLong spliterator){
+        Objects.requireNonNull(spliterator);
+        class Adapter implements PrimitiveIterator.OfLong,LongConsumer{
+            boolean valueReady = false;//用来确定tryAdvance不会一直死循环
+            long nextElement;//存储当前存储的值
+
+            @Override
+            public void accept(long t) {
+                valueReady = true;
+                nextElement = t;
+            }
+
+            @Override
+            public boolean hasNext() {
+                if (!valueReady)
+                    spliterator.tryAdvance(this);
+                return valueReady;
+            }
+
+            @Override
+            public long nextLong() {
+                if (!valueReady && !hasNext())
+                    throw new NoSuchElementException();
+                else {
+                    valueReady = false;
+                    return nextElement;
+                }
+            }
+        }
+
+        return new Adapter();
+    }
+
+    /**
+     * 根据一个浮点数分区迭代器返回一个浮点数迭代器对象
+     * */
+    public static PrimitiveIterator.OfDouble iterator(Spliterator.OfDouble spliterator){
+        Objects.requireNonNull(spliterator);
+        class Adapter implements PrimitiveIterator.OfDouble,DoubleConsumer{
+            boolean valueReady = false;//用来确定tryAdvance不会一直死循环
+            double nextElement;//存储当前存储的值
+
+            @Override
+            public void accept(double t) {
+                valueReady = true;
+                nextElement = t;
+            }
+
+            @Override
+            public boolean hasNext() {
+                if (!valueReady)
+                    spliterator.tryAdvance(this);
+                return valueReady;
+            }
+
+            @Override
+            public double nextDouble() {
+                if (!valueReady && !hasNext())
+                    throw new NoSuchElementException();
+                else {
+                    valueReady = false;
+                    return nextElement;
+                }
+            }
+        }
+
+        return new Adapter();
+    }
+
+    /**
      * 一个空分区迭代器
      * */
     private static abstract class EmptySpliterator<T,S extends Spliterator<T>,C>{
@@ -203,7 +419,7 @@ public final class Spliterators {
                 action.accept(e);
                 return true;
             }
-            return true;
+            return false;
         }
 
         @Override
@@ -268,7 +484,7 @@ public final class Spliterators {
                 action.accept(array[index++]);
                 return true;
             }
-            return true;
+            return false;
         }
 
         @Override
@@ -333,7 +549,7 @@ public final class Spliterators {
                 action.accept(array[index++]);
                 return true;
             }
-            return true;
+            return false;
         }
 
         @Override
@@ -398,7 +614,7 @@ public final class Spliterators {
                 action.accept(array[index++]);
                 return true;
             }
-            return true;
+            return false;
         }
 
         @Override
@@ -513,6 +729,17 @@ public final class Spliterators {
         }
 
         @Override
+        public void forEachRemaining(Consumer<? super T> action){
+            Objects.requireNonNull(action);
+            Iterator<? extends T> i;
+            if ((i = it) == null) {
+                i = it = collection.iterator();
+                est = (long)collection.size();
+            }
+            i.forEachRemaining((java.util.function.Consumer<? super T>)action::accept);
+        }
+
+        @Override
         public long estimateSize() {
             if(it == null) {
                 it = collection.iterator();
@@ -528,6 +755,246 @@ public final class Spliterators {
 
         @Override
         public Comparator<? super T> getComparator(){
+            if(hasCharacteristics(Spliterator.SORTED))
+                return null;
+            throw new IllegalStateException();
+        }
+    }
+
+    /**
+     * 一个用于分割整数类型集合的分区迭代器
+     * */
+    static final class IntIteratorSpliterator implements Spliterator.OfInt{
+        static final int BATCH_UNIT = IteratorSpliterator.BATCH_UNIT;
+        static final int MAX_BATCH = IteratorSpliterator.MAX_BATCH;
+        private PrimitiveIterator.OfInt it;
+        private final int characteristics;
+        private long est;
+        private int batch;
+
+        public IntIteratorSpliterator(PrimitiveIterator.OfInt iterator,long size,int characteristics){
+            this.it = iterator;
+            this.est = size;
+            this.characteristics = (characteristics & Spliterator.CONCURRENT) == 0
+                    ? characteristics | Spliterator.SIZED | Spliterator.SUBSIZED
+                    : characteristics;
+        }
+
+        public IntIteratorSpliterator(PrimitiveIterator.OfInt iterator,int characteristics){
+            this.it = iterator;
+            this.est = Long.MAX_VALUE;
+            this.characteristics = characteristics & ~(Spliterator.SIZED | Spliterator.SUBSIZED);
+        }
+
+        @Override
+        public boolean tryAdvance(IntConsumer action) {
+            Objects.requireNonNull(action);
+            if(it.hasNext()){
+                action.accept(it.next());
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public Spliterator.OfInt trySplit() {
+            PrimitiveIterator.OfInt i = it;
+            long s = est;
+            if(s > 1 && i.hasNext()){
+                int n = batch + BATCH_UNIT;
+                if(n > s)
+                    n = (int) s;
+                if(n > MAX_BATCH)
+                    n = MAX_BATCH;
+                int[] a = new int[n];
+                int j = 0;
+                do{a[j] = i.next();}while(++j < n && i.hasNext());
+                batch = j;
+                if(est != Long.MAX_VALUE)
+                    est -= j;
+                return new IntArraySpliterator(a,0,j,characteristics);
+            }
+            return null;
+        }
+
+        @Override
+        public void forEachRemaining(IntConsumer action){
+            Objects.requireNonNull(action);
+            it.forEachRemaining(action);
+        }
+
+        @Override
+        public long estimateSize() {
+            return est;
+        }
+
+        @Override
+        public int characteristics() {
+            return characteristics;
+        }
+
+        @Override
+        public Comparator<? super Integer> getComparator(){
+            if(hasCharacteristics(Spliterator.SORTED))
+                return null;
+            throw new IllegalStateException();
+        }
+    }
+
+    /**
+     * 一个用于分割长整数类型集合的分区迭代器
+     * */
+    static final class LongIteratorSpliterator implements Spliterator.OfLong{
+        static final int BATCH_UNIT = IteratorSpliterator.BATCH_UNIT;
+        static final int MAX_BATCH = IteratorSpliterator.MAX_BATCH;
+        private PrimitiveIterator.OfLong it;
+        private final int characteristics;
+        private long est;
+        private int batch;
+
+        public LongIteratorSpliterator(PrimitiveIterator.OfLong iterator,long size,int characteristics){
+            this.it = iterator;
+            this.est = size;
+            this.characteristics = (characteristics & Spliterator.CONCURRENT) == 0
+                    ? characteristics | Spliterator.SIZED | Spliterator.SUBSIZED
+                    : characteristics;
+        }
+
+        public LongIteratorSpliterator(PrimitiveIterator.OfLong iterator,int characteristics){
+            this.it = iterator;
+            this.est = Long.MAX_VALUE;
+            this.characteristics = characteristics & ~(Spliterator.SIZED | Spliterator.SUBSIZED);
+        }
+
+        @Override
+        public boolean tryAdvance(LongConsumer action) {
+            Objects.requireNonNull(action);
+            if(it.hasNext()){
+                action.accept(it.next());
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public Spliterator.OfLong trySplit() {
+            PrimitiveIterator.OfLong i = it;
+            long s = est;
+            if(s > 1 && i.hasNext()){
+                int n = batch + BATCH_UNIT;
+                if(n > s)
+                    n = (int) s;
+                if(n > MAX_BATCH)
+                    n = MAX_BATCH;
+                long[] a = new long[n];
+                int j = 0;
+                do{a[j] = i.next();}while(++j < n && i.hasNext());
+                batch = j;
+                if(est != Long.MAX_VALUE)
+                    est -= j;
+                return new LongArraySpliterator(a,0,j,characteristics);
+            }
+            return null;
+        }
+
+        @Override
+        public void forEachRemaining(LongConsumer action){
+            Objects.requireNonNull(action);
+            it.forEachRemaining(action);
+        }
+
+        @Override
+        public long estimateSize() {
+            return est;
+        }
+
+        @Override
+        public int characteristics() {
+            return characteristics;
+        }
+
+        @Override
+        public Comparator<? super Long> getComparator(){
+            if(hasCharacteristics(Spliterator.SORTED))
+                return null;
+            throw new IllegalStateException();
+        }
+    }
+
+    /**
+     * 一个用于分割浮点数类型集合的分区迭代器
+     * */
+    static final class DoubleIteratorSpliterator implements Spliterator.OfDouble{
+        static final int BATCH_UNIT = IteratorSpliterator.BATCH_UNIT;
+        static final int MAX_BATCH = IteratorSpliterator.MAX_BATCH;
+        private PrimitiveIterator.OfDouble it;
+        private final int characteristics;
+        private long est;
+        private int batch;
+
+        public DoubleIteratorSpliterator(PrimitiveIterator.OfDouble iterator,long size,int characteristics){
+            this.it = iterator;
+            this.est = size;
+            this.characteristics = (characteristics & Spliterator.CONCURRENT) == 0
+                    ? characteristics | Spliterator.SIZED | Spliterator.SUBSIZED
+                    : characteristics;
+        }
+
+        public DoubleIteratorSpliterator(PrimitiveIterator.OfDouble iterator,int characteristics){
+            this.it = iterator;
+            this.est = Long.MAX_VALUE;
+            this.characteristics = characteristics & ~(Spliterator.SIZED | Spliterator.SUBSIZED);
+        }
+
+        @Override
+        public boolean tryAdvance(DoubleConsumer action) {
+            Objects.requireNonNull(action);
+            if(it.hasNext()){
+                action.accept(it.next());
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public Spliterator.OfDouble trySplit() {
+            PrimitiveIterator.OfDouble i = it;
+            long s = est;
+            if(s > 1 && i.hasNext()){
+                int n = batch + BATCH_UNIT;
+                if(n > s)
+                    n = (int) s;
+                if(n > MAX_BATCH)
+                    n = MAX_BATCH;
+                double[] a = new double[n];
+                int j = 0;
+                do{a[j] = i.next();}while(++j < n && i.hasNext());
+                batch = j;
+                if(est != Long.MAX_VALUE)
+                    est -= j;
+                return new DoubleArraySpliterator(a,0,j,characteristics);
+            }
+            return null;
+        }
+
+        @Override
+        public void forEachRemaining(DoubleConsumer action){
+            Objects.requireNonNull(action);
+            it.forEachRemaining(action);
+        }
+
+        @Override
+        public long estimateSize() {
+            return est;
+        }
+
+        @Override
+        public int characteristics() {
+            return characteristics;
+        }
+
+        @Override
+        public Comparator<? super Double> getComparator(){
             if(hasCharacteristics(Spliterator.SORTED))
                 return null;
             throw new IllegalStateException();
