@@ -1,3 +1,5 @@
+package test;
+
 import com.test.util.Spliterator;
 import com.test.util.function.IntConsumer;
 

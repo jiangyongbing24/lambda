@@ -1,3 +1,5 @@
+package test;
+
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.Consumer;

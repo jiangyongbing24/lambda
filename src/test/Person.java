@@ -1,8 +1,10 @@
+package test;
+
 import java.io.Serializable;
 
 /**
  * @Created by JYB
- * @Date 2019/7/11 20:41
+ * @Date 2019/7/24 20:03
  * @Description TODO
  */
 public class Person extends Man implements Serializable {
@@ -31,8 +33,8 @@ public class Person extends Man implements Serializable {
     public String toString() {
         return
                 "id:" + id
-                + " name:" + name.toString()
-                + " age:" + age
+                        + " name:" + name.toString()
+                        + " age:" + age
                 ;
     }
 }
