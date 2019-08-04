@@ -61,7 +61,7 @@ public final class Spliterators {
      * */
     public static <T> Spliterator<T> spliterator(Object[] array,int fromIndex,int toIndex,int additionalCharacteristics){
         checkFromToBounds(Objects.requireNonNull(array).length,fromIndex,toIndex);
-        return new ArraySpliterator(Objects.requireNonNull(array),fromIndex,fromIndex,additionalCharacteristics);
+        return new ArraySpliterator(Objects.requireNonNull(array),fromIndex,toIndex,additionalCharacteristics);
     }
 
     /**

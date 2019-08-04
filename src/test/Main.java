@@ -10,7 +10,86 @@ import java.util.stream.Stream;
 public class Main {
 
     public static void main(String[] args) {
-        StreamMap_StreamFlatMap();
+        SystemArrayCopy();
+    }
+
+    /** 测试System.arraycopy方法 */
+    public static void SystemArrayCopy(){
+        int[] a = new int[]{1,2,3};
+        int[] b = new int[]{4,5};
+        System.arraycopy(a,1,b,0,1);
+        for (int i = 0; i < b.length; i++) {
+            System.out.println(b[i]);
+        }
+    }
+
+    /** 测试Integer.numberOfLeadingZeros()方法 */
+    public static void IntegernumberOfLeadingZeros(){
+        int MIN_CHUNK_POWER = 4;
+        int initialCapacity = 16;
+        System.out.println(Test.IntegerTo32BinaryString(initialCapacity));
+        int initialChunkPower = Math.max(MIN_CHUNK_POWER
+                ,Integer.SIZE - Integer.numberOfLeadingZeros(initialCapacity));
+        System.out.println(initialChunkPower);
+    }
+
+    /** 测试断言 */
+    public static void Assert(){
+        String name = "";
+        assert !"".equals(name):"名字为空";
+        System.out.println(name);
+    }
+
+    public static void TestStreamCollect(){
+        ArrayList<String> list = Stream.of("one", "two", "three", "four")
+                .parallel()
+                .collect(ArrayList::new,ArrayList::add,ArrayList::addAll);
+        list.forEach(System.out::println);
+    }
+
+    /**
+     * 测试流的有状态操作和无状态操作
+     * */
+    public static void TestStreamStatus(){
+        //打印每个单词的长度
+        String str = "my name is jiangyongbing good";
+        Stream.of(str.split(" "))
+                .parallel()
+                .peek(x -> System.out.println(Thread.currentThread().getName() + "___" + x))
+                .map(x -> x.length())
+                .sorted()
+                .peek(x -> System.out.println(Thread.currentThread().getName() + "___" + x))
+                .count();
+
+        System.out.println();
+        int sum = Stream.of(1,2,3,4).reduce(0,(x,y) -> (x + y) * 2);
+        System.out.println(sum);
+    }
+
+    /**
+     * 测试Stream接口的peek方法
+     * */
+    public static void TestStreamPeek(){
+        Stream.of("one", "two", "three", "four")
+                .filter(e -> e.length() > 3)
+                .peek(e -> System.out.println("Filtered value: " + e))
+                .map(String::toUpperCase)
+                .peek(e -> System.out.println("Mapped value: " + e))
+                .collect(Collectors.toList());
+
+        Stream.of("one", "two", "three", "four")
+                .filter(e -> e.length() > 3)
+                .limit(3)
+                .peek(System.out::println)
+                .collect(Collectors.toList());
+
+        String[] str = Stream.of("one", "two", "three", "four").toArray(String[]::new);
+        for(int i=0;i<str.length;i++){
+            System.out.print(str[i] + " ");
+        }
+        System.out.println();
+        int sum = Stream.of(1,2,3,4).parallel().reduce(576,(x,y) -> x /y);
+        System.out.println(sum);
     }
 
     /**
@@ -127,6 +206,9 @@ public class Main {
         }
     }
 
+    /**
+     * 测试Function接口的andThen方法
+     * */
     public static void TestFunction(){
         Function<Integer,Integer> function1  = x -> x * x;
         Function<Integer,Integer> function2 = function1.compose(x -> x + 2);
