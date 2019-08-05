@@ -9,7 +9,7 @@ import com.test.util.function.LongConsumer;
 /**
  * 分区遍历迭代器
  * */
-public interface Spliterator<T> {
+public interface Spliterator<T>{
 
     /**
      * 分区中如果存在剩余的元素，执行消费者action，

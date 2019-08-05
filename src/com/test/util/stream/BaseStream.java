@@ -15,12 +15,17 @@ public interface BaseStream<T,S extends BaseStream<T,S>> extends AutoCloseable {
     boolean isPrallel();
 
     /**
-     * 顺序的
+     * 返回顺序的等效流
      * */
     S sequential();
 
     /**
-     * 无序的
+     * 返回并行的等效流
+     * */
+    S parallel();
+
+    /**
+     * 返回一个无序的等效流
      * */
     S unordered();
 

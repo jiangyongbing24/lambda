@@ -148,6 +148,11 @@ public interface Stream<T> extends BaseStream<T,Stream<T>> {
      *
      * 在串行流当中，combiner无作用
      * 在并行流的情况下，combiner符合结合律
+     *
+     * @param supplier 一个提供可变容器的供应商
+     * @param accumulator 一个叠加器，把源内元素叠加到容器当中
+     * @param combiner 把容器中的元素复制到当前源中
+     * @return a stream with a handler that is run if the stream is closed
      * */
     <R> R collect(Supplier<R> supplier,BiConsumer<R,? super T> accumulator,BiConsumer<R,R> combiner);
 

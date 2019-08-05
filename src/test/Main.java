@@ -5,12 +5,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Main {
 
     public static void main(String[] args) {
-        SystemArrayCopy();
+        TestStreamStatus();
     }
 
     /** 测试System.arraycopy方法 */
@@ -51,19 +52,20 @@ public class Main {
      * 测试流的有状态操作和无状态操作
      * */
     public static void TestStreamStatus(){
-        //打印每个单词的长度
-        String str = "my name is jiangyongbing good";
-        Stream.of(str.split(" "))
-                .parallel()
-                .peek(x -> System.out.println(Thread.currentThread().getName() + "___" + x))
-                .map(x -> x.length())
-                .sorted()
-                .peek(x -> System.out.println(Thread.currentThread().getName() + "___" + x))
-                .count();
+        /** 由于是并行的流，而map是一个有状态的操作，
+         * 在这种情况下，每次执行的结果输出都不同
+         * */
+//        Set<Integer> seen = Collections.synchronizedSet(new HashSet<>());
+//        seen.add(1);
+//        Stream.of(1,2,3)
+//                .parallel()
+//                .map(e -> { if (seen.add(e)) return 0; else return e; })
+//                .forEach(System.out::println);
 
-        System.out.println();
-        int sum = Stream.of(1,2,3,4).reduce(0,(x,y) -> (x + y) * 2);
-        System.out.println(sum);
+        int[] obj = IntStream.range(0,5).parallel().map(x -> x*2).toArray();
+        for(int i:obj){
+            System.out.println(i);
+        }
     }
 
     /**

@@ -695,7 +695,7 @@ class SpinedBuffer<E>
             return Spliterators.iterator(getSpliterator());
         }
 
-        public Spliterator<Integer> getSpliterator(){
+        public Spliterator.OfInt getSpliterator(){
             class Splitr extends BaseSpliterator<Spliterator.OfInt>
                     implements Spliterator.OfInt{
                 Splitr(int firstSpineIndex, int lastSpineIndex, int firstSpineElementIndex, int lastSpineElementFence) {
@@ -792,7 +792,7 @@ class SpinedBuffer<E>
             return Spliterators.iterator(getSpliterator());
         }
 
-        public Spliterator<Long> getSpliterator(){
+        public Spliterator.OfLong getSpliterator(){
             class Splitr extends BaseSpliterator<Spliterator.OfLong>
                     implements Spliterator.OfLong{
                 Splitr(int firstSpineIndex, int lastSpineIndex, int firstSpineElementIndex, int lastSpineElementFence) {
@@ -889,7 +889,7 @@ class SpinedBuffer<E>
             return Spliterators.iterator(getSpliterator());
         }
 
-        public Spliterator<Double> getSpliterator(){
+        public Spliterator.OfDouble getSpliterator(){
             class Splitr extends BaseSpliterator<Spliterator.OfDouble>
                     implements Spliterator.OfDouble{
                 Splitr(int firstSpineIndex, int lastSpineIndex, int firstSpineElementIndex, int lastSpineElementFence) {
