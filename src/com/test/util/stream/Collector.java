@@ -1,5 +1,6 @@
 package com.test.util.stream;
 
+import com.test.util.Collections;
 import com.test.util.Set;
 import com.test.util.function.BiConsumer;
 import com.test.util.function.BinaryOperator;
@@ -47,6 +48,8 @@ public interface Collector<T,A,R> {
         Objects.requireNonNull(combiner);
         Objects.requireNonNull(finisher);
         Objects.requireNonNull(characteristics);
+        Set<Characteristics> cs = Collectors.CH_NOID;
+        if(characteristics.length > 0){}
         return null;
     }
 

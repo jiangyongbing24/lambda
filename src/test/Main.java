@@ -1,5 +1,8 @@
 package test;
 
+import sun.misc.JavaLangAccess;
+import sun.misc.SharedSecrets;
+
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;

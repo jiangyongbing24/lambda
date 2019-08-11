@@ -1,6 +1,7 @@
 package com.test.util;
 
 import java.util.Iterator;
+import java.util.Objects;
 
 /**
  * 抽象集合
@@ -44,6 +45,35 @@ public abstract class AbstractCollection<E> implements Collection<E> {
         return it.hasNext() ? finishToArray(r, it) : r;
     }
 
+    public <T> T[] toArray(T[] a) {
+        //获取大小
+        int size = size();
+        //如果传进来的数组大小大于当前的大小
+        T[] r = a.length >= size ? a :
+                (T[])java.lang.reflect.Array
+                        .newInstance(a.getClass().getComponentType(), size);
+        Iterator<E> it = iterator();
+
+        for (int i = 0; i < r.length; i++) {
+            if (! it.hasNext()) { //如果没有元素了
+                if (a == r) {//如果a等于r
+                    r[i] = null; // null-terminate
+                } else if (a.length < i) {
+                    return Arrays.copyOf(r, i);
+                } else {
+                    System.arraycopy(r, 0, a, 0, i);
+                    if (a.length > i) {
+                        a[i] = null;
+                    }
+                }
+                return a;
+            }
+            r[i] = (T)it.next();
+        }
+        // more elements than expected
+        return it.hasNext() ? finishToArray(r, it) : r;
+    }
+
     /** 迭代器超出预期 */
     private static <T> T[] finishToArray(T[] r, Iterator<?> it) {
         int i = r.length;//记录原来的数组长度
@@ -70,5 +100,94 @@ public abstract class AbstractCollection<E> implements Collection<E> {
         return (minCapacity > MAX_ARRAY_SIZE) ?
                 Integer.MAX_VALUE :
                 MAX_ARRAY_SIZE;
+    }
+
+    public boolean add(E e) {
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean remove(Object o) {
+        Iterator<E> it = iterator();
+        if (o==null) {
+            while (it.hasNext()) {
+                if (it.next()==null) {
+                    it.remove();
+                    return true;
+                }
+            }
+        } else {
+            while (it.hasNext()) {
+                if (o.equals(it.next())) {
+                    it.remove();
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean containsAll(Collection<?> c) {
+        for (Object e : c)
+            if (!contains(e))
+                return false;
+        return true;
+    }
+
+    public boolean addAll(Collection<? extends E> c) {
+        boolean modified = false;
+        for (E e : c)
+            if (add(e))
+                modified = true;
+        return modified;
+    }
+
+    public boolean removeAll(Collection<?> c) {
+        Objects.requireNonNull(c);
+        boolean modified = false;
+        Iterator<?> it = iterator();
+        while (it.hasNext()) {
+            if (c.contains(it.next())) {
+                it.remove();
+                modified = true;
+            }
+        }
+        return modified;
+    }
+
+    public boolean retainAll(Collection<?> c) {
+        Objects.requireNonNull(c);
+        boolean modified = false;
+        Iterator<E> it = iterator();
+        while (it.hasNext()) {
+            if (!c.contains(it.next())) {
+                it.remove();
+                modified = true;
+            }
+        }
+        return modified;
+    }
+
+    public void clear() {
+        Iterator<E> it = iterator();
+        while (it.hasNext()) {
+            it.next();
+            it.remove();
+        }
+    }
+
+    public String toString() {
+        Iterator<E> it = iterator();
+        if (! it.hasNext())
+            return "[]";
+
+        StringBuilder sb = new StringBuilder();
+        sb.append('[');
+        for (;;) {
+            E e = it.next();
+            sb.append(e == this ? "(this Collection)" : e);
+            if (! it.hasNext())
+                return sb.append(']').toString();
+            sb.append(',').append(' ');
+        }
     }
 }
