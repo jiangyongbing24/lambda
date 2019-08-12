@@ -14,7 +14,16 @@ import java.util.stream.Stream;
 public class Main {
 
     public static void main(String[] args) {
-        TestStreamStatus();
+        TestRightShiftSymbol();
+    }
+
+    public static void TestRightShiftSymbol(){
+        int a = -1;
+        System.out.println(Test.IntegerTo32BinaryString(a));
+        System.out.println(Test.IntegerTo32BinaryString(~a));
+        System.out.println(Test.IntegerTo32BinaryString(a >> -3));
+        System.out.println(Test.IntegerTo32BinaryString(a >>> -3));
+        System.out.println(Integer.bitCount(7));
     }
 
     /** 测试System.arraycopy方法 */

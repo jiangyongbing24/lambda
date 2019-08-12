@@ -202,7 +202,7 @@ public abstract class EnumSet<E extends Enum<E>>
 
     Object writeReplace(){return new SerializationProxy<>(this);}
 
-    //序列化代理模式的readObject方法
+    //序列化代理模式的readObject方法,防止反序列化的时候进行写入操作
     private void readObject(java.io.ObjectInputStream stream)
             throws java.io.InvalidObjectException {
         throw new java.io.InvalidObjectException("Proxy required");
