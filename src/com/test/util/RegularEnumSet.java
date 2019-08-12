@@ -4,6 +4,7 @@ import com.test.util.function.Consumer;
 import test.MyEnum;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * EnumSet的私有实现类，用于"常规大小"的枚举型（即小于等于64）
@@ -18,10 +19,20 @@ class RegularEnumSet<E extends Enum<E>> extends EnumSet<E> {
         super(elementType, universe);
     }
 
+    /**
+     * 把from到to之间的枚举添加进来
+     * */
     void addRange(E from, E to) {
+        //from.ordinal()-to.ordinal()-1得到区间[from,to]的元素数量的相反数
+        //-1L不带符号右移这个相反数会得到二进制有对应数量1bit的数
+        //再对这个数进行左位移
         elements = (-1L >>> (from.ordinal() - to.ordinal() - 1) << from.ordinal());
     }
 
+    /**
+     * 把universe中的元素正式添加进来，
+     * 在没有进行这个动作之前，RegularEnumSet是个空set
+     * */
     void addAll() {
         // 根据universe的长度，得到一个值
         // 这个值的二进制的1bit的数量 = universe.length
@@ -31,6 +42,7 @@ class RegularEnumSet<E extends Enum<E>> extends EnumSet<E> {
             elements = -1L >>> -universe.length;
     }
 
+    /** 转为EnumSet的补码 */
     void complement() {
         if(universe.length != 0){
             elements = ~elements;
@@ -39,9 +51,41 @@ class RegularEnumSet<E extends Enum<E>> extends EnumSet<E> {
     }
 
     public Iterator<E> iterator() {
-        return null;
+        return new EnumSetIterator();
     }
 
+    /**
+     * 一个用来迭代 EnumSet 的迭代器
+     * */
+    private class EnumSetIterator<E extends Enum<E>> implements Iterator<E>{
+        long unseen;
+
+        long lastReturned = 0;
+
+        EnumSetIterator(){unseen = elements;}
+
+        public boolean hasNext() {
+            return unseen != 0;
+        }
+
+        @SuppressWarnings("unchecked")
+        public E next() {
+            if(unseen == 0)
+                throw new NoSuchElementException();
+            lastReturned = unseen & -unseen;
+            unseen -= lastReturned;
+            return (E) universe[Long.numberOfTrailingZeros(lastReturned)];
+        }
+
+        public void remove(){
+            if(lastReturned == 0)
+                throw new IllegalStateException();
+            elements &= ~lastReturned;
+            lastReturned = 0;
+        }
+    }
+
+    //RegularEnumSet的大小为elements含有1bit的数量
     public int size() {return Long.bitCount(elements);}
 
     public boolean isEmpty(){return elements == 0;}
@@ -57,10 +101,14 @@ class RegularEnumSet<E extends Enum<E>> extends EnumSet<E> {
     }
 
     public static void main(String[] args) {
-        Enum<MyEnum>[] myEnum = new Enum[]{MyEnum.one,MyEnum.three};
+        Enum<MyEnum>[] myEnum = new Enum[]{MyEnum.one,MyEnum.two};
         RegularEnumSet<MyEnum> set = new RegularEnumSet<MyEnum>(MyEnum.class,myEnum);
-//        set.addRange(MyEnum.one,MyEnum.three);
+        System.out.println(Long.toBinaryString(set.elements));
         set.addAll();
-        System.out.println(set.size());
+//        set.addRange();
+//        System.out.println(Long.toBinaryString(set.elements));
+        set.complement();
+        System.out.println(Long.toBinaryString(set.elements));
+//        System.out.println(set.size());
     }
 }
