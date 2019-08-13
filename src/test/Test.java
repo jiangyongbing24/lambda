@@ -12,7 +12,9 @@ import java.util.function.IntConsumer;
 public class Test {
     public static void main(String[] args) {
         String[] mans = new String[]{"张三","李四","王麻子","汤姆","杰瑞"};
-        ArrayList<String> manList = new ArrayList<>();
+        ArrayList<String> manList = new ArrayList<>(Arrays.asList("张三","李四","王麻子","汤姆","杰瑞"));
+        ArrayList<String> testList = new ArrayList<>(Arrays.asList("张三","李四","王麻子","汤姆","杰瑞","蒋勇兵"));
+        System.out.println(testList.containsAll(manList));
         Collections.addAll(manList,mans);
         Spliterator<String> spliterator = Spliterators.spliterator(mans,Spliterator.DISTINCT);
 //        Spliterator<String> spliterator = manList.spliterator();
