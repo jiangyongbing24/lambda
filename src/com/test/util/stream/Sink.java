@@ -16,7 +16,7 @@ import java.util.Objects;
 interface Sink<T> extends Consumer<T> {
     /**
      * 开始遍历元素之前调用该方法，通知Sink做好准备
-     * 当然对于有状态的操作，才方法必须实现
+     * 当然对于有状态的操作，方法必须实现
      * */
     default void begin(long size){}
 
@@ -32,8 +32,8 @@ interface Sink<T> extends Consumer<T> {
     default boolean cancellationRequested(){return false;}
 
     /**
-     * 遍历元素时调用，接受一个待处理元素，并对元素进行处理。
-     * Stage把自己包含的操作和回调方法封装到该方法里，前一个Stage只需要调用当前Stage.accept(T t)方法就行了。
+     * 遍历元素时调用，接受一个待处理元素，并对元素进行处理
+     * Stage把自己包含的操作和回调方法封装到该方法里，前一个Stage只需要调用当前Stage.accept(T t)方法就行了
      * */
     default void accept(int value){throw new IllegalStateException("called wrong accept method");}
 

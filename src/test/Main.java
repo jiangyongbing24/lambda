@@ -14,7 +14,14 @@ import java.util.stream.Stream;
 public class Main {
 
     public static void main(String[] args) {
-        TestRightShiftSymbol();
+        TestStreamMatch();
+    }
+
+    /** 测试Stream中的各种Match方法 */
+    public static void TestStreamMatch(){
+        boolean result = Stream.of("one", "two", "three", "four").noneMatch(s -> s.length() > 5);
+        Stream stream = Stream.of("one", "two", "three", "four");
+        System.out.println(stream.findFirst());
     }
 
     public static void TestRightShiftSymbol(){

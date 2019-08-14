@@ -176,5 +176,41 @@ public interface Stream<T> extends BaseStream<T,Stream<T>> {
      * */
     long count();
 
+    /** 流中是否有元素匹配谓词predicate */
     boolean anyMatch(Predicate<? super T> predicate);
+
+    /** 流中所有元素是否都匹配谓词predicate */
+    boolean allMatch(Predicate<? super T> predicate);
+
+    /** 没有元素符合谓词predicate，返回true，否则返回false */
+    boolean noneMatch(Predicate<? super T> predicate);
+
+    /** 返回第一个元素 */
+    Optional<T> findFirst();
+
+    /** 返回任意的一个元素 */
+    Optional<T> findAny();
+
+    public static<T> Builder<T> build(){return null;}
+
+    /**
+     * Stream的可变构造器，通过一个一个接受元素生成Stream
+     * 没有使用复制开销来作为临时缓冲区
+     * */
+    public interface Builder<T> extends Consumer<T>{
+        /** 向正在构建的流添加元素 */
+        @Override
+        void accept(T t);
+
+        /** 向正在构建的流添加元素 */
+        default Builder<T> add(T t){
+            accept(t);
+            return this;
+        }
+
+        /**
+         * 构建Stream，并且把Stream的状态修改为已经构建
+         * */
+        Stream<T> build();
+    }
 }
