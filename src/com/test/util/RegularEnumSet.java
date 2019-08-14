@@ -1,6 +1,5 @@
 package com.test.util;
 
-import com.test.util.function.Consumer;
 import test.MyEnum;
 
 import java.util.Iterator;

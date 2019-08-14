@@ -156,6 +156,9 @@ public interface Stream<T> extends BaseStream<T,Stream<T>> {
      * */
     <R> R collect(Supplier<R> supplier,BiConsumer<R,? super T> accumulator,BiConsumer<R,R> combiner);
 
+    /**
+     * 通过一个搜集器完成Stream的mutable reduction操作
+     * */
     <R,A> R collect(Collector<? super T,A,R> collector);
 
     /**

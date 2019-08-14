@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.util.Iterator;
 import java.util.Objects;
 import com.test.lang.Iterable;
+import com.test.util.stream.Stream;
 
 public interface Collection<E> extends Iterable<E> {
     /**
@@ -99,5 +100,13 @@ public interface Collection<E> extends Iterable<E> {
     @Override
     default Spliterator<E> getSpliterator(){
         return Spliterators.spliterator(this,0);
+    }
+
+    default Stream<E> stream() {
+        return null;
+    }
+
+    default Stream<E> parallelStream() {
+        return null;
     }
 }
