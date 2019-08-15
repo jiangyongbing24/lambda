@@ -14,7 +14,29 @@ import java.util.stream.Stream;
 public class Main {
 
     public static void main(String[] args) {
-        TestStreamBuilder();
+        TestMapEntry();
+    }
+
+    /** 测试Map.Entry遍历Map */
+    public static void TestMapEntry(){
+        Map<String, String> map = new HashMap<>();
+        map.put("1", "value1");
+        map.put("2", "value2");
+        map.put("2","test");
+        map.put("3", "value3");
+
+        Set<Map.Entry<String,String>> set = map.entrySet();//获取条目的Set
+        Iterator<Map.Entry<String,String>> it = set.iterator();//获取这个Set的迭代器
+        Comparator<Map.Entry<String,String>> comparator = Map.Entry.comparingByKey();//得到一个比较器
+        //获取set中的元素
+        Map.Entry<String,String> pre = set.stream().filter(m -> "value1".equals(m.getValue())).findFirst().orElse(null);
+        while(it.hasNext()){
+            Map.Entry<String,String> entry = it.next();
+            System.out.println(comparator.compare(pre,entry));//比较两个元素
+            System.out.println("key=" + entry.getKey() + " and value=" + entry.getValue() + " " +entry.setValue("test"));
+        }
+        map.replaceAll((k,v) -> k + v);
+        System.out.println(map);
     }
 
     /** 测试Stream.Builder的应用 */
