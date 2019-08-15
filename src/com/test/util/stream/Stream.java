@@ -191,7 +191,8 @@ public interface Stream<T> extends BaseStream<T,Stream<T>> {
     /** 返回任意的一个元素 */
     Optional<T> findAny();
 
-    public static<T> Builder<T> build(){return null;}
+    /** 返回一个Stream构造器 */
+    public static<T> Builder<T> build(){return new Streams.StreamBuilderImpl<>();}
 
     /**
      * Stream的可变构造器，通过一个一个接受元素生成Stream
@@ -202,7 +203,7 @@ public interface Stream<T> extends BaseStream<T,Stream<T>> {
         @Override
         void accept(T t);
 
-        /** 向正在构建的流添加元素 */
+        /** 向正在构建的流添加元素，返回的是一个新的Builder，可以再次添加元素 */
         default Builder<T> add(T t){
             accept(t);
             return this;

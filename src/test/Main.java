@@ -14,7 +14,18 @@ import java.util.stream.Stream;
 public class Main {
 
     public static void main(String[] args) {
-        TestStreamMatch();
+        TestStreamBuilder();
+    }
+
+    /** 测试Stream.Builder的应用 */
+    public static void TestStreamBuilder(){
+        Stream.Builder<String> builder = Stream.builder();
+        builder = builder.add("a").add("b").add("c").add("d").add("e").add("f");
+        Stream.Builder<String> builder1 = Stream.builder();
+        builder1 = builder1.add("a").add("b").add("c").add("d").add("e").add("f");
+        builder1.build();
+        Spliterator<String> spliterator = (Spliterator<String>) builder1;
+        spliterator.tryAdvance(System.out::println);
     }
 
     /** 测试Stream中的各种Match方法 */
