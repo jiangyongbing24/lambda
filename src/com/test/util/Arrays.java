@@ -134,6 +134,12 @@ public class Arrays {
         }
     }
 
+    /** 使用指定的val填充Object数组a */
+    public static void fill(Object[] a, Object val) {
+        for (int i = 0, len = a.length; i < len; i++)
+            a[i] = val;
+    }
+
     /** 使用指定的val填充long数组a */
     public static void fill(long[] a, long val) {
         for (int i = 0, len = a.length; i < len; i++)

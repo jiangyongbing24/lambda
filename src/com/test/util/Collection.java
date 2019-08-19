@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import com.test.lang.Iterable;
 import com.test.util.stream.Stream;
+import com.test.util.stream.StreamSupport;
 
 public interface Collection<E> extends Iterable<E> {
     /**
@@ -103,7 +104,7 @@ public interface Collection<E> extends Iterable<E> {
     }
 
     default Stream<E> stream() {
-        return null;
+        return StreamSupport.stream(getSpliterator(),false);
     }
 
     default Stream<E> parallelStream() {

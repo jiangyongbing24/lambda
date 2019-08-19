@@ -655,7 +655,7 @@ class SpinedBuffer<E>
             if(consumer instanceof IntConsumer)
                 forEach((IntConsumer)consumer);
             else{
-                if(Tripwire.ENABLE)
+                if(Tripwire.ENABLED)
                     Tripwire.trip(getClass(),"{0} calling SpinedBuffer.OfInt.forEach(Consumer)");
                 getSpliterator().forEachRemaining(consumer);
             }
@@ -752,7 +752,7 @@ class SpinedBuffer<E>
             if(consumer instanceof LongConsumer)
                 forEach((LongConsumer)consumer);
             else{
-                if(Tripwire.ENABLE)
+                if(Tripwire.ENABLED)
                     Tripwire.trip(getClass(),"{0} calling SpinedBuffer.OfLong.forEach(Consumer)");
                 getSpliterator().forEachRemaining(consumer);
             }
@@ -849,7 +849,7 @@ class SpinedBuffer<E>
             if(consumer instanceof DoubleConsumer)
                 forEach((DoubleConsumer)consumer);
             else{
-                if(Tripwire.ENABLE)
+                if(Tripwire.ENABLED)
                     Tripwire.trip(getClass(),"{0} calling SpinedBuffer.OfDouble.forEach(Consumer)");
                 getSpliterator().forEachRemaining(consumer);
             }

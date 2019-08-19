@@ -50,7 +50,7 @@ interface Sink<T> extends Consumer<T> {
 
         @Override
         default void accept(Integer i){
-            if(Tripwire.ENABLE)
+            if(Tripwire.ENABLED)
                 Tripwire.trip(getClass(),"{0} calling Sink.OfInt.accept(Integer)");
             accept(i.intValue());
         }
@@ -65,7 +65,7 @@ interface Sink<T> extends Consumer<T> {
 
         @Override
         default void accept(Long i){
-            if(Tripwire.ENABLE)
+            if(Tripwire.ENABLED)
                 Tripwire.trip(getClass(),"{0} calling Sink.LongConsumer.accept(Long)");
             accept(i.longValue());
         }
@@ -80,7 +80,7 @@ interface Sink<T> extends Consumer<T> {
 
         @Override
         default void accept(Double i){
-            if(Tripwire.ENABLE)
+            if(Tripwire.ENABLED)
                 Tripwire.trip(getClass(),"{0} calling Sink.DoubleConsumer.accept(Double)");
             accept(i.doubleValue());
         }

@@ -12,7 +12,7 @@ public interface BaseStream<T,S extends BaseStream<T,S>> extends AutoCloseable {
     /**
      * 是平行的
      * */
-    boolean isPrallel();
+    boolean isParallel();
 
     /**
      * 返回顺序的等效流

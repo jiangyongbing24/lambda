@@ -8,7 +8,7 @@ import java.security.PrivilegedAction;
 final class Tripwire {
     private static final String TRIPWIRE_PROPERTY = "org.openjdk.java.util.stream.tripwire";
 
-    static final boolean ENABLE = AccessController.doPrivileged(
+    static final boolean ENABLED = AccessController.doPrivileged(
             (PrivilegedAction<Boolean>) () -> Boolean.getBoolean(TRIPWIRE_PROPERTY));
 
     private Tripwire(){}

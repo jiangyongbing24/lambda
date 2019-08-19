@@ -114,7 +114,7 @@ interface Node<T> {
         @Override
         default T[] asArray(IntFunction<T[]> generator){
             Objects.requireNonNull(generator);
-            if(Tripwire.ENABLE)
+            if(Tripwire.ENABLED)
                 Tripwire.trip(getClass(),"{0} calling Node.OfPrimitive.asArray");
             long size = count();
             if(size >= Nodes.MAX_ARRAY_SIZE)
@@ -150,7 +150,7 @@ interface Node<T> {
             if(action instanceof IntConsumer)
                 forEach((IntConsumer) action);
             else{
-                if(Tripwire.ENABLE)
+                if(Tripwire.ENABLED)
                     Tripwire.trip(getClass(),"{0} calling Node.OfInt.forEachRemaining(Consumer)");
                 getSpliterator().forEachRemaining(action);
             }
@@ -158,7 +158,7 @@ interface Node<T> {
 
         @Override
         default void copyInto(Integer[] boxed,int offset){
-            if (Tripwire.ENABLE)
+            if (Tripwire.ENABLED)
                 Tripwire.trip(getClass(), "{0} calling Node.OfInt.copyInto(Integer[], int)");
             int[] array = asPrimitiveArray();
             for(int i=0;i<array.length;i++){
@@ -200,7 +200,7 @@ interface Node<T> {
             if(action instanceof LongConsumer)
                 forEach((LongConsumer) action);
             else{
-                if(Tripwire.ENABLE)
+                if(Tripwire.ENABLED)
                     Tripwire.trip(getClass(),"{0} calling Node.OfInt.forEachRemaining(Consumer)");
                 getSpliterator().forEachRemaining(action);
             }
@@ -208,7 +208,7 @@ interface Node<T> {
 
         @Override
         default void copyInto(Long[] boxed,int offset){
-            if (Tripwire.ENABLE)
+            if (Tripwire.ENABLED)
                 Tripwire.trip(getClass(), "{0} calling Node.OfInt.copyInto(Integer[], int)");
             long[] array = asPrimitiveArray();
             for(int i=0;i<array.length;i++){
@@ -250,7 +250,7 @@ interface Node<T> {
             if(action instanceof DoubleConsumer)
                 forEach((DoubleConsumer) action);
             else{
-                if(Tripwire.ENABLE)
+                if(Tripwire.ENABLED)
                     Tripwire.trip(getClass(),"{0} calling Node.OfInt.forEachRemaining(Consumer)");
                 getSpliterator().forEachRemaining(action);
             }
@@ -258,7 +258,7 @@ interface Node<T> {
 
         @Override
         default void copyInto(Double[] boxed,int offset){
-            if (Tripwire.ENABLE)
+            if (Tripwire.ENABLED)
                 Tripwire.trip(getClass(), "{0} calling Node.OfInt.copyInto(Integer[], int)");
             double[] array = asPrimitiveArray();
             for(int i=0;i<array.length;i++){
