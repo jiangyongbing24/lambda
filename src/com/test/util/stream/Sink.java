@@ -8,7 +8,7 @@ import com.test.util.function.LongConsumer;
 import java.util.Objects;
 
 /**
- * 协调相邻Stage之间的调用关系
+ * 一个接收器用来协调相邻Stage之间的调用关系
  *
  * 每个Stage都会将自己的操作封装到一个Sink里，
  * 前一个Stage只需调用后一个Stage的accept()方法即可，并不需要知道其内部是如何处理的
@@ -90,8 +90,10 @@ interface Sink<T> extends Consumer<T> {
      * 一个链式调用的抽象类
      * */
     static abstract class ChainedReference<T,E_OUT> implements Sink<T>{
+        //下一个Sink
         protected final Sink<? super E_OUT> downstream;
 
+        //使用下一个Sink初始化当前Sink，当前Sink有了下一个链接
         public ChainedReference(Sink<? super E_OUT> downstream){
             this.downstream = Objects.requireNonNull(downstream);
         }

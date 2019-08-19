@@ -127,6 +127,7 @@ abstract class AbstractPipeline<E_IN, E_OUT, S extends BaseStream<E_OUT, S>>
 
     /** 使用终端操作评估管道以生成结果 */
     final <R> R evaluate(TerminalOp<E_OUT,R> terminalOp){
+        //管到的输出形状等于终端执行操作的形状
         assert getOutputShape() == terminalOp.inputShape();
         if(linkedOrConsumed)
             throw new IllegalStateException();
@@ -160,14 +161,17 @@ abstract class AbstractPipeline<E_IN, E_OUT, S extends BaseStream<E_OUT, S>>
             throw new IllegalStateException(MSG_CONSUMED);
         }
 
+        //如果是并行的，并且源阶段含有有状态的操作
         if(isParallel() && sourceStage.sourceAnyStateful){
+            //深度置为1
             int depth = 1;
+            //迭代管道
             for(@SuppressWarnings("rawtypes") AbstractPipeline u = sourceStage,p = sourceStage.nextStage,e = this;
                 u != e;u = p,p = p.nextStage){
-                int thisOpFlags = p.sourceOrOpFlags;
-                if(p.opIsStateful()){
-                    depth = 0;
-
+                int thisOpFlags = p.sourceOrOpFlags;//获取当前标志
+                if(p.opIsStateful()){//如果是有状态的操作
+                    depth = 0;//重置迭代的深度
+                    //如果含有短路操作
                     if(StreamOpFlag.SHORT_CIRCUIT.isKnown(thisOpFlags)){
                         //清除下一个流水线阶段的短路标志
                         //这个阶段封装了短路操作，下一个阶段可能没有任何短路操作
