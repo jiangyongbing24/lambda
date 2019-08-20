@@ -139,6 +139,28 @@ abstract class AbstractPipeline<E_IN, E_OUT, S extends BaseStream<E_OUT, S>>
     }
 
     /**
+     * 收集管道阶段的元素输出
+     * */
+    @SuppressWarnings("unchecked")
+    final Node<E_OUT> evaluateToArrayNode(IntFunction<E_OUT[]> generator){
+        if(linkedOrConsumed)
+            throw new IllegalStateException();
+        linkedOrConsumed = true;
+
+        //如果管道是并行的，并且最后一个中间操作具有状态
+        //直接评估，以避免额外的收集步骤
+        if(isParallel() && previousStage != null && opIsStateful()){
+            //将此最后一个流水线阶段的深度设置为零以对管道进行切片
+            //使得此操作不会包含在上游切片中，并且上游操作将不包含在此切片中
+            depth = 0;
+            return opEvaluateParallel(previousStage,previousStage.sourceSpliterator(0),generator);
+        }
+        else{
+            return evaluate(sourceSpliterator(0),true,generator);
+        }
+    }
+
+    /**
      * 获取此管道阶段的源spliterator
      * 对于顺序的和无状态的并行管道，这是源分裂器
      * 对于有状态的并行管道，这是一个分裂器，
@@ -161,9 +183,9 @@ abstract class AbstractPipeline<E_IN, E_OUT, S extends BaseStream<E_OUT, S>>
             throw new IllegalStateException(MSG_CONSUMED);
         }
 
-        //如果是并行的，并且源阶段含有有状态的操作
+        //如果管道是并行的，并且源阶段含有有状态的操作
         if(isParallel() && sourceStage.sourceAnyStateful){
-            //深度置为1
+            //因为是并行的,深度置为1，
             int depth = 1;
             //迭代管道
             for(@SuppressWarnings("rawtypes") AbstractPipeline u = sourceStage,p = sourceStage.nextStage,e = this;
@@ -171,25 +193,45 @@ abstract class AbstractPipeline<E_IN, E_OUT, S extends BaseStream<E_OUT, S>>
                 int thisOpFlags = p.sourceOrOpFlags;//获取当前标志
                 if(p.opIsStateful()){//如果是有状态的操作
                     depth = 0;//重置迭代的深度
-                    //如果含有短路操作
+                    //如果含有短路操作，需要清除这个短路操作的标志
+                    //因为这个有状态的操作在这一步会被计算，
+                    //计算完成之后之前的短路状态已经不会存在
                     if(StreamOpFlag.SHORT_CIRCUIT.isKnown(thisOpFlags)){
                         //清除下一个流水线阶段的短路标志
                         //这个阶段封装了短路操作，下一个阶段可能没有任何短路操作
                         //如果是这样，spliterator.forEachRemaining应该用于遍历
                         thisOpFlags = thisOpFlags & ~StreamOpFlag.IS_SHORT_CIRCUIT;
                     }
+                    //执行此有状态的管道阶段之前所有的操作，并且得到一个迭代器，
+                    //此迭代器描述操作完成之后形成的新的源
                     spliterator = p.opEvaluateParallelLazy(u,spliterator);
 
-//                    thisOpFlags = spliterator.hasCharacteristics(Spliterator.SIZED) ? :;
+                    //在源管道阶段注入或者清除SIZED
+                    thisOpFlags = spliterator.hasCharacteristics(Spliterator.SIZED)// 如果当前分裂器具有SIZED，添加SIZED
+                            ?(thisOpFlags & ~StreamOpFlag.NOT_SIZED) | StreamOpFlag.IS_SIZED //添加SIZED
+                            :(thisOpFlags & ~StreamOpFlag.IS_SIZED) | StreamOpFlag.NOT_SIZED;//清除SIZED
                 }
+                p.depth = depth++;
+                p.combinedFlags = StreamOpFlag.combineOpFlags(thisOpFlags,u.combinedFlags);
             }
         }
-        return null;
+
+        if(terminalFlags != 0){
+            StreamOpFlag.combineOpFlags(terminalFlags,combinedFlags);
+        }
+        return spliterator;
     }
 
     @Override
     public final boolean isParallel() {
         return sourceStage.parallel;
+    }
+
+    @SuppressWarnings("unchecked")
+    final <E_IN> Node<E_OUT> evaluate(Spliterator<E_IN> spliterator,
+                               boolean flatten,
+                               IntFunction<E_OUT[]> generator){
+        return null;
     }
 
     /**

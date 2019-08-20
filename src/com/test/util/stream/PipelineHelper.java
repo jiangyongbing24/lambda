@@ -61,6 +61,12 @@ abstract class PipelineHelper<P_OUT> {
     abstract Node.Builder<P_OUT> makeNodeBuilder(long exactSizeIfKnown,
                                                  IntFunction<P_OUT[]> generator);
 
+    /**
+     * 从管道中使用提供的源分裂器收集所有的输出元素，并把元素存入Node
+     *
+     * flatten如果为true且管道是并行管道，则返回的Node将不包含子项，
+     * 否则Node可能表示树中反映计算树形状的根
+     * */
     abstract<P_IN> Node<P_OUT> evaluate(Spliterator<P_IN> spliterator,
                                         boolean flatten,
                                         IntFunction<P_OUT[]> generator);
