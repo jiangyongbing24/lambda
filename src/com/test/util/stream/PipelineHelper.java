@@ -34,8 +34,8 @@ abstract class PipelineHelper<P_OUT> {
     abstract<P_IN> long exactOutputSizeIfKnown(Spliterator<P_IN> spliterator);
 
     /**
-     * 使用提供的Spliterator，获取此PipelineHelper描述的管道阶段的元素，
-     * 并将结果发送到提供的Sink
+     * 使用提供的Spliterator（接受的参数类型为P_IN），获取此PipelineHelper描述的管道阶段的元素，
+     * 并将结果发送到提供的Sink（接受的参数类型为P_OUT）
      * */
     abstract<P_IN, S extends Sink<P_OUT>> S wrapAndCopyInto(S sink, Spliterator<P_IN> spliterator);
 
@@ -51,13 +51,15 @@ abstract class PipelineHelper<P_OUT> {
      * */
     abstract <P_IN> void copyIntoWithCancel(Sink<P_IN> wrappedSink, Spliterator<P_IN> spliterator);
 
-    /**
-     * 接受一个接收PipelineHelper输出类型元素的Sink，并用一个接受输入类型元素的Sink包装它
-     * */
+    /** 把接受参数类型为P_OUT的Sink包装成接受参数类型为P_IN类型的Sink*/
     abstract<P_IN> Sink<P_IN> wrapSink(Sink<P_OUT> sink);
 
+    /** 把接受参数类型为P_IN的分裂器包装成接受参数类型为P_out类型的分裂器 */
     abstract<P_IN> Spliterator<P_OUT> wrapSpliterator(Spliterator<P_IN> spliterator);
 
+    /**
+     * 根据一个大小和一个数组生成工厂，返回一个Node.Builder
+     * */
     abstract Node.Builder<P_OUT> makeNodeBuilder(long exactSizeIfKnown,
                                                  IntFunction<P_OUT[]> generator);
 

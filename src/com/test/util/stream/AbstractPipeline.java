@@ -4,6 +4,8 @@ import com.test.util.Spliterator;
 import com.test.util.function.IntFunction;
 import com.test.util.function.Supplier;
 
+import java.util.Objects;
+
 /**
  * “管道”类的抽象基类，它是Stream接口的核心实现及其原始特化，管理流管道的建设和评估
  *
@@ -222,16 +224,118 @@ abstract class AbstractPipeline<E_IN, E_OUT, S extends BaseStream<E_OUT, S>>
         return spliterator;
     }
 
+    /** BaseStream#isParallel()的实现*/
     @Override
     public final boolean isParallel() {
         return sourceStage.parallel;
     }
 
+    /** PipelineHelper#exactOutputSizeIfKnown(Spliterator<P_IN>)的实现 */
+    @Override
+    final <P_IN> long exactOutputSizeIfKnown(Spliterator<P_IN> spliterator) {
+        return StreamOpFlag.SIZED.isKnown(getStreamAndOpFlags()) ? spliterator.getExactSizeIfKnown() : -1;
+    }
+
+    /** PipelineHelper#wrapAndCopyInto(S,Spliterator<P_IN>)的实现 */
+    @Override
+    final <P_IN, S extends Sink<E_OUT>> S wrapAndCopyInto(S sink, Spliterator<P_IN> spliterator) {
+        //首先调用wrapSink把S类型的Sink转换为Sink<P_IN>类型的Sink，然后调用copyInto实现转换
+        copyInto(wrapSink(Objects.requireNonNull(sink)), spliterator);
+        return sink;
+    }
+
+    /** PipelineHelper#copyInto(Sink<P_IN>, Spliterator<P_IN>)的实现 */
+    @Override
+    final <P_IN> void copyInto(Sink<P_IN> wrappedSink, Spliterator<P_IN> spliterator) {
+        Objects.requireNonNull(wrappedSink);
+        //不含有短路操作
+        if (!StreamOpFlag.SHORT_CIRCUIT.isKnown(getStreamAndOpFlags())) {
+            //wrappedSink开启接受，初始化的大小为分裂器spliterator的大小
+            wrappedSink.begin(spliterator.getExactSizeIfKnown());
+            //循环分裂器，把元素写入wrappedSink
+            //下面等同于 spliterator.forEachRemaining(wrappedSink::accept);
+            //等同于 spliterator.forEachRemaining(t -> {wrappedSink.accept(t);});
+            spliterator.forEachRemaining(wrappedSink);
+            //结束
+            wrappedSink.end();
+        }
+        else {
+            //含有短路操作的交给copyIntoWithCancel处理
+            copyIntoWithCancel(wrappedSink, spliterator);
+        }
+    }
+
+    /** PipelineHelper#copyIntoWithCancel(Sink<P_IN>, Spliterator<P_IN>)的实现 */
+    @Override
+    @SuppressWarnings("unchecked")
+    final <P_IN> void copyIntoWithCancel(Sink<P_IN> wrappedSink, Spliterator<P_IN> spliterator) {
+        @SuppressWarnings({"rawtypes","unchecked"})
+        AbstractPipeline p = AbstractPipeline.this;//获取当前的管道
+        //返回到上一个有状态的管道
+        while (p.depth > 0) {
+            p = p.previousStage;
+        }
+        //wrappedSink开启接受，初始化的大小为分裂器spliterator的大小
+        wrappedSink.begin(spliterator.getExactSizeIfKnown());
+        //使用spliterator源，循环分裂器，把元素写入wrappedSink
+        p.forEachWithCancel(spliterator, wrappedSink);
+        //结束
+        wrappedSink.end();
+    }
+
+    /** PipelineHelper#getStreamAndOpFlags()的实现 */
+    @Override
+    final int getStreamAndOpFlags() {
+        return combinedFlags;
+    }
+
+    final boolean isOrdered() {
+        return StreamOpFlag.ORDERED.isKnown(combinedFlags);
+    }
+
+    /** PipelineHelper#wrapSink(Sink<E_OUT>)的实现 */
+    @Override
+    @SuppressWarnings("unchecked")
+    final <P_IN> Sink<P_IN> wrapSink(Sink<E_OUT> sink) {
+        Objects.requireNonNull(sink);
+        //循环到最后一个有状态的管道阶段
+        for ( @SuppressWarnings("rawtypes") AbstractPipeline p=AbstractPipeline.this;
+              p.depth > 0; p=p.previousStage) {
+            //包装每一步的Sink
+            sink = p.opWrapSink(p.previousStage.combinedFlags, sink);
+        }
+        return (Sink<P_IN>) sink;
+    }
+
+    /** PipelineHelper#wrapSpliterator(Spliterator<P_IN>)的实现 */
+    @Override
+    @SuppressWarnings("unchecked")
+    final <P_IN> Spliterator<E_OUT> wrapSpliterator(Spliterator<P_IN> sourceSpliterator) {
+        if (depth == 0) {//如果是第一个源，直接返回
+            return (Spliterator<E_OUT>) sourceSpliterator;
+        }
+        else {
+            return wrap(this, () -> sourceSpliterator, isParallel());
+        }
+    }
+
+    /** PipelineHelper#evaluate(Spliterator<P_IN>,boolean,IntFunction<P_OUT[]>)的实现 */
+    @Override
     @SuppressWarnings("unchecked")
     final <E_IN> Node<E_OUT> evaluate(Spliterator<E_IN> spliterator,
                                boolean flatten,
                                IntFunction<E_OUT[]> generator){
-        return null;
+        if(isParallel()){
+            //优化此流水线阶段的操作是否为有状态操作
+            return evaluateToNode(this,spliterator,flatten,generator);
+        }
+        else{
+            //根据spliterator大小和数组生成器生成一个Node.Builde
+            Node.Builder<E_OUT> nb = makeNodeBuilder(
+                    exactOutputSizeIfKnown(spliterator),generator);
+            //把spliterator中的元素复制并且包装到nb当中
+            return wrapAndCopyInto(nb,spliterator).build();
+        }
     }
 
     /**
@@ -246,6 +350,35 @@ abstract class AbstractPipeline<E_IN, E_OUT, S extends BaseStream<E_OUT, S>>
      * opEvaluateParallel（PipelineHelper，java.util.Spliterator，java.util.function.IntFunction）
      * */
     abstract boolean opIsStateful();
+
+    /** 将管道输出的元素收集到包含此形状元素的节点中 */
+    abstract <P_IN> Node<E_OUT> evaluateToNode(PipelineHelper<E_OUT> helper,
+                                               Spliterator<P_IN> spliterator,
+                                               boolean flattenTree,
+                                               IntFunction<E_OUT[]> generator);
+
+    /**
+     * 根据一个大小和一个数组生成工厂，返回一个Node.Builder
+     * */
+    @Override
+    abstract Node.Builder<E_OUT> makeNodeBuilder(long exactSizeIfKnown,
+                                                 IntFunction<E_OUT[]> generator);
+
+    /**
+     * 遍历与此流形状兼容的分裂器的元素，将这些元素推入接收器。 如果接收器请求取消，则不会拉出或推送其他元素
+     * */
+    abstract void forEachWithCancel(Spliterator<E_OUT> spliterator, Sink<E_OUT> sink);
+
+    /** 使用标志flags和sink包装一个Sink<E_IN>，迭代sink之前的所有的sink，包装后返回 */
+    abstract Sink<E_IN> opWrapSink(int flags, Sink<E_OUT> sink);
+
+    /**
+     * 根据当前的PipelineHelper，Supplier<Spliterator<P_IN>>，isParallel
+     * 包装成一个Spliterator
+     */
+    abstract <P_IN> Spliterator<E_OUT> wrap(PipelineHelper<E_OUT> ph,
+                                            Supplier<Spliterator<P_IN>> supplier,
+                                            boolean isParallel);
 
     /**
      * 用指定的操作执行并行操作的评估
