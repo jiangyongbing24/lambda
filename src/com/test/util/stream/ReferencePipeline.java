@@ -12,16 +12,19 @@ import com.test.util.function.Supplier;
 abstract class ReferencePipeline<P_IN,P_OUT>
         extends AbstractPipeline<P_IN,P_OUT,Stream<P_OUT>>
         implements Stream<P_OUT>{
+    /** 初始化的源管道 */
     ReferencePipeline(Supplier<? extends Spliterator<?>> source,
                       int sourceFlags, boolean parallel) {
         super(source, sourceFlags, parallel);
     }
 
+    /** 初始化的源管道 */
     ReferencePipeline(Spliterator<?> source,
                       int sourceFlags, boolean parallel) {
         super(source, sourceFlags, parallel);
     }
 
+    /** 初始化中间管道 */
     ReferencePipeline(AbstractPipeline<?, P_IN, ?> upstream, int opFlags) {
         super(upstream, opFlags);
     }

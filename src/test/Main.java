@@ -22,9 +22,9 @@ public class Main {
         Stream.of(1,2,3,15,64)
                 .parallel() //并行流
                 .filter(i -> i > 1) //无状态
-                .map(i -> i*2) //无状态
+                .map(i -> i+1) //无状态
                 .skip(1) //有状态的操作
-                .peek(i -> i = i+2) //无状态的
+                .peek(i -> i = i+1) //无状态的
                 .forEach(System.out::println);
     }
 
