@@ -162,6 +162,108 @@ abstract class AbstractPipeline<E_IN, E_OUT, S extends BaseStream<E_OUT, S>>
         }
     }
 
+    /** 收集管道阶段的元素输出 */
+    @SuppressWarnings("unchecked")
+    final Spliterator<E_OUT> sourceStageSpliterator(){
+        if (this != sourceStage)
+            throw new IllegalStateException();
+
+        if (linkedOrConsumed)
+            throw new IllegalStateException(MSG_STREAM_LINKED);
+        linkedOrConsumed = true;
+
+        //返还管道源的分裂器，然后把分裂器置为空
+        if (sourceStage.sourceSpliterator != null) {
+            @SuppressWarnings("unchecked")
+            Spliterator<E_OUT> s = sourceStage.sourceSpliterator;
+            sourceStage.sourceSpliterator = null;
+            return s;
+        }
+        //根据分裂器供应商，返还管道源的分裂器，然后把供应商置为空
+        else if (sourceStage.sourceSupplier != null) {
+            @SuppressWarnings("unchecked")
+            Spliterator<E_OUT> s = (Spliterator<E_OUT>) sourceStage.sourceSupplier.get();
+            sourceStage.sourceSupplier = null;
+            return s;
+        }
+        else {
+            throw new IllegalStateException(MSG_CONSUMED);
+        }
+    }
+
+    /** BaseStream#sequential()的实现*/
+    @Override
+    @SuppressWarnings("unchecked")
+    public final S sequential() {
+        sourceStage.parallel = false;
+        return (S) this;
+    }
+
+    /** BaseStream#parallel()的实现*/
+    @Override
+    @SuppressWarnings("unchecked")
+    public final S parallel() {
+        sourceStage.parallel = true;
+        return (S) this;
+    }
+
+    /** BaseStream#close()的实现*/
+    @Override
+    public void close() {
+        linkedOrConsumed = true;
+        sourceSupplier = null;
+        sourceSpliterator = null;
+        if (sourceStage.sourceCloseAction != null) {
+            Runnable closeAction = sourceStage.sourceCloseAction;
+            sourceStage.sourceCloseAction = null;
+            closeAction.run();
+        }
+    }
+
+    /** BaseStream#onClose()的实现*/
+    @Override
+    @SuppressWarnings("unchecked")
+    public S onClose(Runnable closeHandler) {
+        //获取源阶段的关闭程序
+        Runnable existingHandler = sourceStage.sourceCloseAction;
+        //如果源阶段的sourceCloseAction为null，closeHandler赋给原阶段的sourceCloseAction
+        //否则返回一个Runnable，它会顺序执行existingHandler和closeHandler
+        sourceStage.sourceCloseAction =
+                (existingHandler == null)
+                        ? closeHandler
+                        : Streams.composeWithExceptions(existingHandler, closeHandler);
+        return (S) this;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Spliterator<E_OUT> spliterator() {
+        if (linkedOrConsumed)
+            throw new IllegalStateException(MSG_STREAM_LINKED);
+        linkedOrConsumed = true;
+
+        if (this == sourceStage) {
+            if (sourceStage.sourceSpliterator != null) {
+                @SuppressWarnings("unchecked")
+                Spliterator<E_OUT> s = (Spliterator<E_OUT>) sourceStage.sourceSpliterator;
+                sourceStage.sourceSpliterator = null;
+                return s;
+            }
+            else if (sourceStage.sourceSupplier != null) {
+                @SuppressWarnings("unchecked")
+                Supplier<Spliterator<E_OUT>> s = (Supplier<Spliterator<E_OUT>>) sourceStage.sourceSupplier;
+                sourceStage.sourceSupplier = null;
+                return lazySpliterator(s);
+            }
+            else {
+                throw new IllegalStateException(MSG_CONSUMED);
+            }
+        }
+        else {
+            return wrap(this, () -> sourceSpliterator(0), isParallel());
+        }
+    }
+
     /**
      * 获取此管道阶段的源spliterator
      * 对于顺序的和无状态的并行管道，这是源分裂器
@@ -379,6 +481,9 @@ abstract class AbstractPipeline<E_IN, E_OUT, S extends BaseStream<E_OUT, S>>
     abstract <P_IN> Spliterator<E_OUT> wrap(PipelineHelper<E_OUT> ph,
                                             Supplier<Spliterator<P_IN>> supplier,
                                             boolean isParallel);
+
+    /** 创建一个懒惰的spliterator，它包装并获得提供的在惰性分裂器上调用方法时的spliterator */
+    abstract Spliterator<E_OUT> lazySpliterator(Supplier<? extends Spliterator<E_OUT>> supplier);
 
     /**
      * 用指定的操作执行并行操作的评估

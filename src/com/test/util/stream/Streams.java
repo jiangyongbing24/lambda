@@ -128,4 +128,31 @@ final class Streams {
                     Spliterator.ORDERED | Spliterator.IMMUTABLE;
         }
     }
+
+    /**
+     * 给定两个Runnable，返回一个Runnable，它会按顺序执行这两个Runnable，即使第一个抛出异常，
+     * 如果两个都抛出异常，添加第二个抛出的任何异常作为第一个的抑制异常
+     */
+    static Runnable composeWithExceptions(Runnable a, Runnable b) {
+        return new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    a.run();
+                }
+                catch (Throwable e1) {
+                    try {
+                        b.run();
+                    }
+                    catch (Throwable e2) {
+                        try {
+                            e1.addSuppressed(e2);
+                        } catch (Throwable ignore) {}
+                    }
+                    throw e1;
+                }
+                b.run();
+            }
+        };
+    }
 }
