@@ -20,6 +20,25 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>,Cloneable
 
     static final int TREEIFY_THRESHOLD = 8;
 
+    /** Map.Entry的实现类 */
+    static class Node<K,V> implements Map.Entry<K,V>{
+
+        @Override
+        public K getKey() {
+            return null;
+        }
+
+        @Override
+        public V getValue() {
+            return null;
+        }
+
+        @Override
+        public V setValue(V value) {
+            return null;
+        }
+    }
+
     @Override
     public Set<Entry<K, V>> entrySet() {
         return null;
