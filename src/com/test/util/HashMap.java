@@ -1,6 +1,7 @@
 package com.test.util;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>,Cloneable, Serializable {
     private static final long serialVersionUID = 362498820763181265L;
@@ -22,21 +23,46 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>,Cloneable
 
     /** Map.Entry的实现类 */
     static class Node<K,V> implements Map.Entry<K,V>{
+        final int hash;
+        final K key;
+        V value;
+        Node<K,V> next;
 
-        @Override
-        public K getKey() {
-            return null;
+        Node(int hash,K key,V value,Node<K,V> next){
+            this.hash = hash;
+            this.key = key;
+            this.value = value;
+            this.next = next;
         }
 
-        @Override
-        public V getValue() {
-            return null;
+        public final K getKey() {return key;}
+        public final V getValue() {return value;}
+        public final String toString(){return key+"="+value;}
+
+        public final int hasCode(){return Objects.hashCode(key) & Objects.hashCode(value);}
+
+        public V setValue(V newValue) {
+            V oldValue = value;
+            value = newValue;
+            return oldValue;
         }
 
-        @Override
-        public V setValue(V value) {
-            return null;
+        public boolean equals(Object o){
+            if(this == o)
+                return true;
+            if(o instanceof Map.Entry){
+                Map.Entry<?,?> e = (Map.Entry<?,?>)o;
+                if(Objects.equals(getKey(),e.getKey()) &&
+                        Objects.equals(getValue(),e.getValue()))
+                    return true;
+            }
+            return false;
         }
+    }
+
+    static final int hash(Object key){
+        int h;
+        return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
     }
 
     @Override
