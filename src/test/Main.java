@@ -14,7 +14,17 @@ import java.util.stream.Stream;
 public class Main {
 
     public static void main(String[] args) {
-        StreamProcess();
+        TestNewHashMap();
+    }
+
+    /** 测试new一个HashMap的时候putMapEntries的工作流程 */
+    public static void TestNewHashMap(){
+        HashMap<Integer,Integer> map1 = new HashMap<>();
+        for(int i = 1;i <= 12;i++){
+            map1.put(i,i);
+        }
+        HashMap<Integer,Integer> map2 = new HashMap<>(map1);
+        System.out.println(map2.size());
     }
 
     /** Stream流程处理的测试 */
