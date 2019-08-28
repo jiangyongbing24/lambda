@@ -1,6 +1,8 @@
 package com.test.util;
 
 import java.io.Serializable;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Objects;
 
 public class HashMap<K,V> extends AbstractMap<K,V> implements Cloneable, Serializable {
@@ -82,6 +84,44 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Cloneable, Seriali
     static final int hash(Object key){
         int h;
         return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
+    }
+
+    /**
+     * 如果它的形式为"class C implements Comparable <C>"，则返回x的Class，否则返回null
+     */
+    static Class<?> comparableClassFor(Object x) {
+        // 如果x实现了Comparable接口
+        if (x instanceof Comparable) {
+            Class<?> c; Type[] ts, as; Type t; ParameterizedType p;
+            if ((c = x.getClass()) == String.class) // bypass checks
+                return c;
+            // 获取此对象表示的类或接口直接实现的接口的Type
+            if ((ts = c.getGenericInterfaces()) != null) {
+                // 读取所有的接口
+                for (int i = 0; i < ts.length; ++i) {
+                    // 如果接口具有参数化类型，并且参数化类型实现了Comparable接口
+                    // 并且此类型的实际类型参数中只有一个，并且类型为x.getClass();
+                    if (((t = ts[i]) instanceof ParameterizedType) &&
+                            ((p = (ParameterizedType)t).getRawType() ==
+                                    Comparable.class) &&
+                            (as = p.getActualTypeArguments()) != null &&
+                            as.length == 1 && as[0] == c) // type arg is c
+                        return c;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 如果x匹配kc(k's screened comparable class)，
+     * 返回k.compareTo(x)，否则返回0
+     * */
+    static int compareComparables(Class<?> kc, Object k, Object x) {
+        // 如果x为null，或者x并不是kc类型，返回0
+        // 否则返回k和x的比较结果
+        return (x == null || x.getClass() != kc ? 0 :
+                ((Comparable)k).compareTo(x));
     }
 
     /**
@@ -319,11 +359,121 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Cloneable, Seriali
             }
         }
 
+        /**
+         * 查找树中的元素
+         * */
+        final TreeNode<K,V> find(int h, Object k, Class<?> kc) {
+            // 记录当前节点
+            TreeNode<K,V> p = this;
+            do {
+                int ph, dir; K pk;
+                // 获取到左节点，右节点
+                TreeNode<K,V> pl = p.left, pr = p.right, q;
+                // 如果当前节点的hash大于传入的需要查找的hash，
+                // 指向左节点
+                if ((ph = p.hash) > h)
+                    p = pl;
+                // 指向右节点
+                else if (ph < h)
+                    p = pr;
+                // 如果查找到，返回
+                else if ((pk = p.key) == k || (k != null && k.equals(pk)))
+                    return p;
+                // 出现hash冲突的，如果左节点为null，指向右节点
+                else if (pl == null)
+                    p = pr;
+                // 如果右节点为null，指向左节点
+                else if (pr == null)
+                    p = pl;
+                // 比较传入的k元素的和当前节点的key的大小，
+                // 如果如果小于，p指向左节点，否则是右节点
+                else if ((kc != null ||
+                        (kc = comparableClassFor(k)) != null) &&
+                        (dir = compareComparables(kc, k, pk)) != 0)
+                    p = (dir < 0) ? pl : pr;
+                // 如果key是不能比较的，返回右节点
+                else if ((q = pr.find(h, k, kc)) != null)
+                    return q;
+                else
+                    p = pl;
+            } while (p != null);
+            return null;
+        }
+
+        static <K,V> void moveRootToFront(Node<K,V>[] tab, TreeNode<K,V> root) {}
+
+        /**
+         * 往树中添加元素
+         * */
         final TreeNode<K,V> putTreeVal(HashMap<K,V> map, Node<K,V>[] tab,
                                        int h, K k, V v) {
+            Class<?> kc = null;
+            boolean searched = false;
+            // 获取根节点
+            TreeNode<K,V> root = (parent != null) ? root() : this;
+            // 从根节点开始
+            for (TreeNode<K,V> p = root;;) {
+                int dir, ph; K pk;
+                if ((ph = p.hash) > h)
+                    dir = -1;
+                else if (ph < h)
+                    dir = 1;
+                else if ((pk = p.key) == k || (k != null && k.equals(pk)))
+                    return p;
+                else if ((kc == null &&
+                        (kc = comparableClassFor(k)) == null) ||
+                        (dir = compareComparables(kc, k, pk)) == 0) {
+                    if (!searched) {
+                        TreeNode<K,V> q, ch;
+                        searched = true;
+                        if (((ch = p.left) != null &&
+                                (q = ch.find(h, k, kc)) != null) ||
+                                ((ch = p.right) != null &&
+                                        (q = ch.find(h, k, kc)) != null))
+                            return q;
+                    }
+                    dir = tieBreakOrder(k, pk);
+                }
+
+                TreeNode<K,V> xp = p;
+                if ((p = (dir <= 0) ? p.left : p.right) == null) {
+                    Node<K,V> xpn = xp.next;
+                    TreeNode<K,V> x = map.newTreeNode(h, k, v, xpn);
+                    if (dir <= 0)
+                        xp.left = x;
+                    else
+                        xp.right = x;
+                    xp.next = x;
+                    x.parent = x.prev = xp;
+                    if (xpn != null)
+                        ((TreeNode<K,V>)xpn).prev = x;
+                    moveRootToFront(tab, balanceInsertion(root, x));
+                    return null;
+                }
+            }
+        }
+
+        static <K,V> TreeNode<K,V> balanceInsertion(TreeNode<K,V> root,
+                                                    TreeNode<K,V> x) {
             return null;
         }
     }
+
+    static int tieBreakOrder(Object a, Object b) {
+        int d;
+        if (a == null || b == null ||
+                (d = a.getClass().getName().
+                        compareTo(b.getClass().getName())) == 0)
+            d = (System.identityHashCode(a) <= System.identityHashCode(b) ?
+                    -1 : 1);
+        return d;
+    }
+
+    // Create a tree bin node
+    TreeNode<K,V> newTreeNode(int hash, K key, V value, Node<K,V> next) {
+        return new TreeNode<>(hash, key, value, next);
+    }
+
 
     @Override
     public Set<Entry<K, V>> entrySet() {

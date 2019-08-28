@@ -14,7 +14,29 @@ import java.util.stream.Stream;
 public class Main {
 
     public static void main(String[] args) {
-        TestNewHashMap();
+        TestTreeMap();
+    }
+
+    public static void TestTreeMap(){
+        TreeMap<Integer,Integer> treeMap = new TreeMap<>();
+        LinkedHashMap<Integer,Integer> linkedHashMap = new LinkedHashMap<>();
+        HashMap<Integer,Integer> hashMap = new HashMap<>();
+        long startTime = System.currentTimeMillis();
+        for (int i = 0; i < 11111111; i++) {
+            treeMap.put(i,i);
+        }
+        System.out.println("treeMap:" + (System.currentTimeMillis() - startTime));
+        startTime = System.currentTimeMillis();
+        for (int i = 0; i < 11111111; i++) {
+            linkedHashMap.put(i,i);
+        }
+        System.out.println("linkedHashMap:" + (System.currentTimeMillis() - startTime));
+        startTime = System.currentTimeMillis();
+        for (int i = 0; i < 11111111; i++) {
+            hashMap.put(i,i);
+        }
+        System.out.println("hashMap:" + (System.currentTimeMillis() - startTime));
+//        map.get(3242234);
     }
 
     /** 测试new一个HashMap的时候putMapEntries的工作流程 */
