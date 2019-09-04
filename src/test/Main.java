@@ -14,7 +14,17 @@ import java.util.stream.Stream;
 public class Main {
 
     public static void main(String[] args) {
-        TestTreeMap();
+        TestLinkHashMap();
+    }
+
+    public static void TestLinkHashMap(){
+        LinkedHashMap<Integer,String> lsm = new LinkedHashMap<>();
+        lsm.put(5,"张三");
+        lsm.put(2,"李四");
+        lsm.put(3,"王麻子");
+        lsm.forEach((k,v) -> {
+            System.out.println(v);
+        });
     }
 
     public static void TestTreeMap(){
@@ -36,7 +46,6 @@ public class Main {
             hashMap.put(i,i);
         }
         System.out.println("hashMap:" + (System.currentTimeMillis() - startTime));
-//        map.get(3242234);
     }
 
     /** 测试new一个HashMap的时候putMapEntries的工作流程 */
