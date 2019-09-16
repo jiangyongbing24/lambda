@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 public class Main {
 
     public static void main(String[] args) {
-        TestLinkHashMap();
+        TestMapEntry();
     }
 
     public static void TestLinkHashMap(){
@@ -81,7 +81,11 @@ public class Main {
         Iterator<Map.Entry<String,String>> it = set.iterator();//获取这个Set的迭代器
         Comparator<Map.Entry<String,String>> comparator = Map.Entry.comparingByKey();//得到一个比较器
         //获取set中的元素
-        Map.Entry<String,String> pre = set.stream().parallel().filter(m -> "value1".equals(m.getValue())).findFirst().orElse(null);
+        Map.Entry<String,String> pre = set.stream()
+                .parallel()
+                .filter(m -> "value1".equals(m.getValue()))
+                .findFirst()
+                .orElse(null);
         while(it.hasNext()){
             Map.Entry<String,String> entry = it.next();
             System.out.println(comparator.compare(pre,entry));//比较两个元素
