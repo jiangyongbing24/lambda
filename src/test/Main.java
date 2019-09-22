@@ -1,12 +1,10 @@
 package test;
 
-import sun.misc.JavaLangAccess;
-import sun.misc.SharedSecrets;
-
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -14,7 +12,26 @@ import java.util.stream.Stream;
 public class Main {
 
     public static void main(String[] args) {
-        TestMapEntry();
+        TestCollectorsGroup();
+    }
+
+    public static void TestCollectorsGroup(){
+
+        List<String> list = new ArrayList<>(Arrays.asList("tom","jerry","kobe","json","kim","james","assss"));
+        // 直接对元素进行分组
+        Map<Integer,List<String>> map1 = list.stream().collect(Collectors.groupingBy(s -> s.length()));
+        // 获取元素的映射，成为downStream，然后再分组
+        Map<Integer,List<String>> map2 = list.stream().collect(
+                Collectors.groupingBy(s -> s.length(),
+                        Collectors.mapping(s -> s.substring(0,s.length() - 2),MyCollectors.toList())));
+        // 最多的参数
+        Map<Integer,Map<String,List<String>>> map3 = list.stream().collect(
+                MyCollectors.groupingBy(s -> s.length(),LinkedHashMap::new,
+                        Collectors.groupingBy(s -> s.substring(0,1))
+                ));
+        map3.forEach((k,v) -> {
+            System.out.println("Key:" + k + " Value:" + v);
+        });
     }
 
     public static void TestLinkHashMap(){

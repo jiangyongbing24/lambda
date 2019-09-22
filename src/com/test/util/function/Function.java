@@ -39,7 +39,7 @@ public interface Function<T,R> {
      * function2.apply(E e)函数定义的入参为E类型
      * 但是再function3.apply中传递给function2.apply的参数v是V类型的
      * 所以E类型一定等于V类型或者是V类型的子类，否则是不可能把V类型的参数传递给E类型的
-     * 所以E extends V，即V super E
+     * 所以E super V
      * */
     default <V> Function<V,R> compose(Function<? super V,? extends T> before){
         Objects.requireNonNull(before);
