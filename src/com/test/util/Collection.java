@@ -2,7 +2,6 @@ package com.test.util;
 
 import com.test.util.function.Predicate;
 
-import java.io.FileOutputStream;
 import java.util.Iterator;
 import java.util.Objects;
 import com.test.lang.Iterable;
